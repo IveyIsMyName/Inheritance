@@ -4,6 +4,7 @@ using std::cin;
 using std::endl;
 
 #define delimiter "\n---------------------------------------------------------------------------\n"
+
 #define HUMAN_TAKE_PARAMETERS const std::string& last_name, const std::string& first_name, int age
 #define HUMAN_GIVE_PARAMETERS last_name, first_name, age
 
@@ -190,7 +191,7 @@ public:
 	{
 		return month;
 	}
-	void set_topic(const std::string topic)
+	void set_topic(const std::string& topic)
 	{
 		this->topic = topic;
 	}
