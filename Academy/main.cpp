@@ -47,13 +47,13 @@ public:
 		set_age(age);
 		cout << "HConstructor:\t" << this << endl;
 	}
-	~Human()
+	virtual ~Human()
 	{
 		cout << "HDestructor:\t" << this << endl;
 	}
 
 	//			Methods:
-	void print()const
+	virtual void print()const 
 	{
 		cout << "Last name: " << last_name << " First name: "  << first_name << " (" << age << " years old)" << endl;
 	}
@@ -85,7 +85,7 @@ public:
 	{
 		return attendance;
 	}
-	void set_specialty(const std::string& speciality)
+	void set_speciality(const std::string& speciality)
 	{
 		this->speciality = speciality;
 	}
@@ -105,11 +105,19 @@ public:
 	//		Constructors:
 	Student(HUMAN_TAKE_PARAMETERS,STUDENT_TAKE_PARAMETERS):Human(HUMAN_GIVE_PARAMETERS)
 	{
-		set_specialty(speciality);
+		set_speciality(speciality);
 		set_group(group);
 		set_rating(rating);
 		set_attendance(attendance);
 		cout << "SConstructor:\t" << this << endl;
+	}
+	Student(const Human& human, STUDENT_TAKE_PARAMETERS) :Human(human)
+	{
+		set_speciality(speciality);
+		set_group(group);
+		set_rating(rating);
+		set_attendance(attendance);
+		cout << "Sconstructor:\t" << this << endl;
 	}
 	~Student()
 	{
@@ -118,7 +126,7 @@ public:
 
 	//		Methods:
 
-	void print()const
+	void print()const override
 	{
 		Human::print();
 		cout << "Speciality: " << speciality << " Group: " << group << " Rating: " << rating << " Attendance: " << attendance << endl;
@@ -163,53 +171,39 @@ public:
 	}
 
 	//			Methods:
-	void print()const
+	void print()const override
 	{
 		Human::print();
 		cout << "Speciality: " << speciality << " Experience: " << experience << " years" << endl;
 	}
 };
 
-#define GRADUATE_TAKE_PARAMETERS const std::string& topic, int day, int month
-#define GRADUATE_GIVE_PARAMETERS topic, day, month
+#define GRADUATE_TAKE_PARAMETERS const std::string& topic
+#define GRADUATE_GIVE_PARAMETERS topic
 
 class Graduate :public Student
 {
 	std::string topic;
-	int day;
-	int month;
 public:
 	const std::string& get_topic()const
 	{
 		return topic;
 	}
-	int get_day()const
-	{
-		return day;
-	}
-	int get_month()const
-	{
-		return month;
-	}
 	void set_topic(const std::string& topic)
 	{
 		this->topic = topic;
-	}
-	void set_day(int day)
-	{
-		this->day = day;
-	}
-	void set_month(int month)
-	{
-		this->month = month;
 	}
 
 	//			Constructors:
 	Graduate(HUMAN_TAKE_PARAMETERS, STUDENT_TAKE_PARAMETERS, GRADUATE_TAKE_PARAMETERS) : Student(HUMAN_GIVE_PARAMETERS, STUDENT_GIVE_PARAMETERS)
 	{
 		set_topic(topic);
-		set_day(day);
-		set_month(month);
+		
+		cout << "GConstructor:\t" << this << endl;
+	}
+	Graduate(const Student& student, const std::string& topic) :Student(student)
+	{
+		set_topic(topic);
 		cout << "GConstructor:\t" << this << endl;
 	}
 	~Graduate()
@@ -218,17 +212,21 @@ public:
 	}
 
 	//			Methods:
-	void print()const
+	void print()const override
 	{
 		Student::print();
-		cout <<"Topic: " << topic << " Date: " << day << '/' << month << endl;
+		cout <<"Topic: " << topic << endl;
 	}
 };
+
+//#define INHERITANCE_1
+//#define INHERITANCE_2
 
 void main()
 {
 	setlocale(LC_ALL, "");
 	
+#ifdef INHERITANCE_1
 	Human human("Richter", "Jeffrey", 40);
 	human.print();
 	cout << delimiter;
@@ -241,7 +239,41 @@ void main()
 	teacher.print();
 	cout << delimiter;
 
-	Graduate graduate("Ilyukhin", "Ivan", 32, "Software Engineering", "BV_319", 100, 100, "Best app in the world", 31, 12);
+	Graduate graduate("Ilyukhin", "Ivan", 32, "Software Engineering", "BV_319", 100, 100, "Best app in the world");
 	graduate.print();
 	cout << delimiter;
+#endif // INHERITANCE_1
+
+#ifdef INHERITANCE_2
+	Human human("Vercetty", "Tommy", 30);
+	human.print();
+	cout << delimiter;
+
+	Student student(human, "Theft", "Vice", 95, 98);
+	student.print();
+	cout << delimiter;
+
+	Graduate graduate(student, "How to make money");
+	graduate.print();
+	cout << delimiter;
+#endif // INHERITANCE_2
+
+	Human* group[] =
+	{
+		new Student("Pinkman", "Jessie", 20, "Chemistry", "WW_220", 95, 90),
+		new Teacher("White", "Walter", 50, "Chemistry", 25),
+		new Graduate("Ilyukhin", "Ivan", 32, "Software Engineering", "BV_319", 100, 100, "Best app in the world"),
+		new Student("Vercetti", "Tommy", 30, "Theft", "Vice", 95, 98),
+		new Teacher("Diaz", "Ricardo", 50, "Weapons distribution", 20)
+	};
+
+	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
+	{
+		group[i]->print();
+		cout << delimiter;
+	}
+	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
+	{
+		delete group[i];
+	}
 }
