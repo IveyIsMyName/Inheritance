@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <string>
 using std::cout;
 using std::cin;
 using std::endl;
@@ -55,9 +56,17 @@ public:
 	//			Methods:
 	virtual void print()const 
 	{
-		cout << "Last name: " << last_name << " First name: "  << first_name << " (" << age << " years old)" << endl;
+		cout << "Last name: " << last_name << "; First name: "  << first_name << " (" << age << " years old)" << endl;
+	}
+	virtual std::ostream& print(std::ostream& os)const
+	{
+		return os << "Last name: " << last_name << "; First name: " << first_name << " (" << age << " years old)";
 	}
 };
+std::ostream& operator<<(std::ostream& os, const Human& obj)
+{
+	return obj.print(os);
+}
 
 #define STUDENT_TAKE_PARAMETERS const std::string& speciality, const std::string& group, double rating, double attendance
 #define STUDENT_GIVE_PARAMETERS speciality, group, rating, attendance
@@ -266,10 +275,11 @@ void main()
 		new Student("Vercetti", "Tommy", 30, "Theft", "Vice", 95, 98),
 		new Teacher("Diaz", "Ricardo", 50, "Weapons distribution", 20)
 	};
-
+	cout << delimiter;
 	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
 	{
-		group[i]->print();
+		//group[i]->print();
+		cout << *group[i] << endl;
 		cout << delimiter;
 	}
 	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
