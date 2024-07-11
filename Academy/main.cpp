@@ -54,13 +54,9 @@ public:
 	}
 
 	//			Methods:
-	virtual void print()const 
-	{
-		cout << "Last name: " << last_name << "; First name: "  << first_name << " (" << age << " years old)" << endl;
-	}
 	virtual std::ostream& print(std::ostream& os)const
 	{
-		return os << "Last name: " << last_name << "; First name: " << first_name << " (" << age << " years old)";
+		return os << last_name << " " << " " << first_name << " " << age;
 	}
 };
 std::ostream& operator<<(std::ostream& os, const Human& obj)
@@ -135,10 +131,9 @@ public:
 
 	//		Methods:
 
-	void print()const override
+	std::ostream& print(std::ostream& os)const override
 	{
-		Human::print();
-		cout << "Speciality: " << speciality << " Group: " << group << " Rating: " << rating << " Attendance: " << attendance << endl;
+		return Human::print(os)<< " " << speciality << " " << group << " " << rating << " " << attendance;
 	}
 };
 
@@ -180,10 +175,9 @@ public:
 	}
 
 	//			Methods:
-	void print()const override
+	std::ostream& print(std::ostream& os)const override
 	{
-		Human::print();
-		cout << "Speciality: " << speciality << " Experience: " << experience << " years" << endl;
+		return Human::print(os)<< " " << speciality << " " << experience;
 	}
 };
 
@@ -221,10 +215,9 @@ public:
 	}
 
 	//			Methods:
-	void print()const override
+	std::ostream& print(std::ostream& os)const override
 	{
-		Student::print();
-		cout <<"Topic: " << topic << endl;
+		return Student::print(os) <<" " << topic;
 	}
 };
 
