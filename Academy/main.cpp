@@ -1,5 +1,7 @@
 ﻿#include <iostream>
 #include <string>
+#include <fstream>
+
 using std::cout;
 using std::cin;
 using std::endl;
@@ -58,10 +60,19 @@ public:
 	{
 		return os << last_name << " " << " " << first_name << " " << age;
 	}
+	virtual std::ofstream& print(std::ofstream& ofs)const
+	{
+		ofs << last_name << " " << " " << first_name << " " << age;
+		return ofs;
+	}
 };
 std::ostream& operator<<(std::ostream& os, const Human& obj)
 {
 	return obj.print(os);
+}
+std::ofstream& operator<<(std::ofstream& ofs, const Human& obj)
+{
+	return obj.print(ofs);
 }
 
 #define STUDENT_TAKE_PARAMETERS const std::string& speciality, const std::string& group, double rating, double attendance
@@ -135,6 +146,11 @@ public:
 	{
 		return Human::print(os)<< " " << speciality << " " << group << " " << rating << " " << attendance;
 	}
+	std::ofstream& print(std::ofstream& ofs)const override
+	{
+		Human::print(ofs) << " " << speciality << " " << group << " " << rating << " " << attendance;
+		return ofs;
+	}
 };
 
 #define TEACHER_TAKE_PARAMETERS const std::string& speciality, int experience
@@ -179,6 +195,11 @@ public:
 	{
 		return Human::print(os)<< " " << speciality << " " << experience;
 	}
+	std::ofstream& print(std::ofstream& ofs)const override
+	{
+		Human::print(ofs) << " " << speciality << " " << experience;
+		return ofs;
+	}
 };
 
 #define GRADUATE_TAKE_PARAMETERS const std::string& topic
@@ -219,7 +240,59 @@ public:
 	{
 		return Student::print(os) <<" " << topic;
 	}
+	std::ofstream& print(std::ofstream& ofs)const override
+	{
+		Student::print(ofs) << " " << topic;
+		return ofs;
+	}
 };
+
+void Print(Human* group[], const int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		//group[i]->print();
+		cout << *group[i] << endl;
+		cout << delimiter;
+	}
+}
+void Clear(Human* group[], const int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		delete group[i];
+	}
+}
+void WriteToFile(Human* group[], const int n, const char* filename)
+{
+	std::ofstream fout(filename); 
+	for (int i = 0; i < n; i++)
+	{
+		fout << *group[i] << endl;
+	}
+	fout.close();
+}
+void ReadFromFile(Human* group[], const int n, const char* filename)
+{
+	std::ifstream fin(filename);  
+	if (fin.is_open())				
+	{
+		while (!fin.eof()) 			
+		{
+			//const int SIZE = 256;
+			//char buffer[SIZE]{};
+			//fin.getline(buffer, SIZE);
+			std::string buffer;
+			std::getline(fin, buffer);
+			cout << buffer << endl;
+		}
+		fin.close();				
+	}
+	else
+	{
+		std::cerr << "Error: file is not found" << endl;
+	}
+}
 
 //#define INHERITANCE_1
 //#define INHERITANCE_2
@@ -269,14 +342,9 @@ void main()
 		new Teacher("Diaz", "Ricardo", 50, "Weapons distribution", 20)
 	};
 	cout << delimiter;
-	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
-	{
-		//group[i]->print();
-		cout << *group[i] << endl;
-		cout << delimiter;
-	}
-	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
-	{
-		delete group[i];
-	}
+	//Print(group, sizeof(group) / sizeof(group[0]));
+	WriteToFile(group, sizeof(group) / sizeof(group[0]), "Group.txt");
+	ReadFromFile(group, sizeof(group) / sizeof(group[0]), "Group.txt");
+	Clear(group, sizeof(group) / sizeof(group[0]));
+	
 }
