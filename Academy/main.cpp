@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <string>
 #include <fstream>
+#include <string.h>
 
 using std::cout;
 using std::cin;
@@ -13,6 +14,11 @@ using std::endl;
 
 class Human
 {
+	static const int TYPE_WIDTH = 12;
+	static const int LAST_NAME_WIDTH = 15;
+	static const int FIRST_NAME_WIDTH = 15;
+	static const int AGE_WIDTH = 5;
+
 	std::string first_name;
 	std::string last_name;
 	int age;
@@ -58,14 +64,25 @@ public:
 	//			Methods:
 	virtual std::ostream& print(std::ostream& os)const
 	{
-		return os << last_name << " " << " " << first_name << " " << age;
+		return os << last_name << " " << first_name << " " << age;
 	}
 	virtual std::ofstream& print(std::ofstream& ofs)const
 	{
-		ofs << last_name << " " << " " << first_name << " " << age;
+		ofs.width(TYPE_WIDTH);		//Метод width() задает ширину вывода.
+							//При первом вызове метод width() включает выравнивание по правому краю.
+		ofs << std::left;
+
+		ofs << std::string(strchr(typeid(*this).name(), ' ') + 1) + ":"; //оператор typeid(type | value) определяет тип значения на этапе выполнения программы
+		ofs.width(LAST_NAME_WIDTH);																 //Метод name() возвращает C-String (Null Terminated Line)
+		ofs << last_name;
+		ofs.width(FIRST_NAME_WIDTH);
+		ofs << first_name; 
+		ofs.width(AGE_WIDTH);
+		ofs << age;
 		return ofs;
 	}
 };
+
 std::ostream& operator<<(std::ostream& os, const Human& obj)
 {
 	return obj.print(os);
@@ -80,6 +97,10 @@ std::ofstream& operator<<(std::ofstream& ofs, const Human& obj)
 
 class Student : public Human
 {
+	const static int SPECIALITY_WIDTH = 25;
+	const static int GROUP_WIDTH = 8;
+	const static int RATING_WIDTH = 8;
+	const static int ATTENDANCE_WIDTH = 8;
 	std::string speciality;
 	std::string group;
 	double rating;
@@ -148,7 +169,15 @@ public:
 	}
 	std::ofstream& print(std::ofstream& ofs)const override
 	{
-		Human::print(ofs) << " " << speciality << " " << group << " " << rating << " " << attendance;
+		Human::print(ofs);
+		ofs.width(SPECIALITY_WIDTH);
+		ofs << speciality; 
+		ofs.width(GROUP_WIDTH);
+		ofs << group;
+		ofs.width(RATING_WIDTH);
+		ofs << rating;
+		ofs.width(ATTENDANCE_WIDTH);
+		ofs << attendance;
 		return ofs;
 	}
 };
@@ -158,6 +187,8 @@ public:
 
 class Teacher :public Human
 {
+	const static int SPECIALITY_WIDTH = 25;
+	const static int EXPERIENCE_WIDTH = 5;
 	std::string speciality;
 	int experience;
 public:
@@ -197,7 +228,11 @@ public:
 	}
 	std::ofstream& print(std::ofstream& ofs)const override
 	{
-		Human::print(ofs) << " " << speciality << " " << experience;
+		Human::print(ofs);
+		ofs.width(SPECIALITY_WIDTH);
+		ofs << speciality;
+		ofs.width(EXPERIENCE_WIDTH);
+		ofs << experience;
 		return ofs;
 	}
 };
@@ -207,6 +242,7 @@ public:
 
 class Graduate :public Student
 {
+	const static int TOPIC_WIDTH = 25;
 	std::string topic;
 public:
 	const std::string& get_topic()const
@@ -242,7 +278,9 @@ public:
 	}
 	std::ofstream& print(std::ofstream& ofs)const override
 	{
-		Student::print(ofs) << " " << topic;
+		Student::print(ofs); 
+		ofs.width(TOPIC_WIDTH);
+		ofs << topic;
 		return ofs;
 	}
 };
@@ -263,7 +301,7 @@ void Clear(Human* group[], const int n)
 		delete group[i];
 	}
 }
-void WriteToFile(Human* group[], const int n, const char* filename)
+void WriteToFile(Human* group[], const int n, const std::string& filename)
 {
 	std::ofstream fout(filename); 
 	for (int i = 0; i < n; i++)
@@ -271,8 +309,10 @@ void WriteToFile(Human* group[], const int n, const char* filename)
 		fout << *group[i] << endl;
 	}
 	fout.close();
-}
-void ReadFromFile(Human* group[], const int n, const char* filename)
+	std::string cmd = "notepad " + filename;
+	system(cmd.c_str());	//Функция system(const char*) выполняет любую доступную команду операционной системы
+}							//Метод c_str() возвращает С-string (NULL Terminated Line), обвернутый в объект класса std::string
+void ReadFromFile(Human* group[], const int n, const std::string& filename)
 {
 	std::ifstream fin(filename);  
 	if (fin.is_open())				
