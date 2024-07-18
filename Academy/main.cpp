@@ -69,7 +69,7 @@ public:
 	virtual std::ofstream& print(std::ofstream& ofs)const
 	{
 		ofs.width(TYPE_WIDTH);		//Метод width() задает ширину вывода.
-							//При первом вызове метод width() включает выравнивание по правому краю.
+									//При первом вызове метод width() включает выравнивание по правому краю.
 		ofs << std::left;
 
 		ofs << std::string(strchr(typeid(*this).name(), ' ') + 1) + ":"; //оператор typeid(type | value) определяет тип значения на этапе выполнения программы
@@ -81,6 +81,11 @@ public:
 		ofs << age;
 		return ofs;
 	}
+	virtual std::ifstream& read(std::ifstream& ifs)
+	{
+		ifs >> last_name >> first_name >> age;
+		return ifs;
+	}
 };
 
 std::ostream& operator<<(std::ostream& os, const Human& obj)
@@ -90,6 +95,10 @@ std::ostream& operator<<(std::ostream& os, const Human& obj)
 std::ofstream& operator<<(std::ofstream& ofs, const Human& obj)
 {
 	return obj.print(ofs);
+}
+std::ifstream& operator>>(std::ifstream& ifs, Human& obj)
+{
+	return obj.read(ifs);
 }
 
 #define STUDENT_TAKE_PARAMETERS const std::string& speciality, const std::string& group, double rating, double attendance
@@ -180,6 +189,15 @@ public:
 		ofs << attendance;
 		return ofs;
 	}
+	std::ifstream& read(std::ifstream& ifs)override
+	{
+		Human::read(ifs);
+		ifs >> speciality;
+		ifs >> group;
+		ifs >> rating;
+		ifs >> attendance;
+		return ifs;
+	}
 };
 
 #define TEACHER_TAKE_PARAMETERS const std::string& speciality, int experience
@@ -235,6 +253,13 @@ public:
 		ofs << experience;
 		return ofs;
 	}
+	std::ifstream& read(std::ifstream& ifs)override
+	{
+		Human::read(ifs);
+		ifs >> speciality;
+		ifs >> experience;
+		return ifs;
+	}
 };
 
 #define GRADUATE_TAKE_PARAMETERS const std::string& topic
@@ -283,7 +308,19 @@ public:
 		ofs << topic;
 		return ofs;
 	}
+	std::ifstream& read(std::ifstream& ifs)override
+	{
+		Student::read(ifs);
+		ifs >> topic;
+		return ifs;
+	}
 };
+Human* HumanAllocate(const std::string& type)
+{
+	if (type.find("Student") != std::string::npos)return new Student("", "", 0, "", "", 0, 0);
+	if (type.find("Teacher") != std::string::npos)return new Teacher("", "", 0, "", 0);
+	if (type.find("Graduate") != std::string::npos)return new Graduate("", "", 0, "", "", 0, 0, "");
+}
 
 void Print(Human* group[], const int n)
 {
@@ -312,31 +349,56 @@ void WriteToFile(Human* group[], const int n, const std::string& filename)
 	std::string cmd = "notepad " + filename;
 	system(cmd.c_str());	//Функция system(const char*) выполняет любую доступную команду операционной системы
 }							//Метод c_str() возвращает С-string (NULL Terminated Line), обвернутый в объект класса std::string
-void ReadFromFile(Human* group[], const int n, const std::string& filename)
+Human** Load(const std::string& filename, int& n)
 {
-	std::ifstream fin(filename);  
-	if (fin.is_open())				
+	Human** group = nullptr;
+	std::ifstream fin(filename);
+	if (fin.is_open())
 	{
-		while (!fin.eof()) 			
+		n = 0;
+		//1) Вычисляем размер файла
+		while (!fin.eof())
 		{
-			//const int SIZE = 256;
-			//char buffer[SIZE]{};
-			//fin.getline(buffer, SIZE);
 			std::string buffer;
-			std::getline(fin, buffer);
-			cout << buffer << endl;
+			std::getline(fin, buffer); //читает все до конца строки
+			if (
+				buffer.find("Human") == std::string::npos &&
+				buffer.find("Student") == std::string::npos &&
+				buffer.find("Teacher") == std::string::npos &&
+				buffer.find("Graduate") == std::string::npos 
+				)continue;
+			n++;
 		}
-		fin.close();				
+		cout << "Количество записей в файле " << n << endl;
+		//2) Выделяем память для группы:
+		group = new Human * [n] {};
+		//3) Возвращаемся в начало файла, для того чтобы прочитать содержимое этого файла
+		cout << "Позиция курсора на чтение: " << fin.tellg() << endl;
+		fin.clear();
+		fin.seekg(0);
+		cout << "Позиция курсора на чтение: " << fin.tellg() << endl;
+
+		//4) Читаем файл:
+		std::string type;
+		for (int i = 0; i < n; i++)
+		{
+			std::getline(fin, type, ':');
+			group[i] = HumanAllocate(type);
+			fin >> *group[i];
+		}
+		fin.close();
 	}
 	else
 	{
 		std::cerr << "Error: file is not found" << endl;
 	}
+	return group;
 }
 
 //#define INHERITANCE_1
 //#define INHERITANCE_2
-
+//#define SAVE_CHECK
+#define LOAD_CHECK
 void main()
 {
 	setlocale(LC_ALL, "");
@@ -373,7 +435,8 @@ void main()
 	cout << delimiter;
 #endif // INHERITANCE_2
 
-	Human* group[] =
+	#ifdef SAVE_CHECK
+		uman* group[] =
 	{
 		new Student("Pinkman", "Jessie", 20, "Chemistry", "WW_220", 95, 90),
 		new Teacher("White", "Walter", 50, "Chemistry", 25),
@@ -384,7 +447,12 @@ void main()
 	cout << delimiter;
 	//Print(group, sizeof(group) / sizeof(group[0]));
 	WriteToFile(group, sizeof(group) / sizeof(group[0]), "Group.txt");
-	ReadFromFile(group, sizeof(group) / sizeof(group[0]), "Group.txt");
+	//ReadFromFile(group, sizeof(group) / sizeof(group[0]), "Group.txt");
 	Clear(group, sizeof(group) / sizeof(group[0]));
-	
+
+#endif // SAVE_CHECK
+
+	int n = 0;
+	Human** group = Load("Group.txt", n);
+	Print(group, n);
 }
