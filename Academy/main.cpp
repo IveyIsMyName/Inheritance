@@ -256,7 +256,11 @@ public:
 	std::ifstream& read(std::ifstream& ifs)override
 	{
 		Human::read(ifs);
-		ifs >> speciality;
+		char sz_speciality[SPECIALITY_WIDTH + 1]{}; //sz_ - Sting Zero
+		ifs.read(sz_speciality, SPECIALITY_WIDTH);
+		for (int i = SPECIALITY_WIDTH - 2; sz_speciality[i] == ' '; i--)sz_speciality[i] = 0;
+		while (sz_speciality[0] == ' ')for (int i = 0; sz_speciality[i]; i++)sz_speciality[i + 1];
+		speciality = sz_speciality;
 		ifs >> experience;
 		return ifs;
 	}
@@ -311,25 +315,32 @@ public:
 	std::ifstream& read(std::ifstream& ifs)override
 	{
 		Student::read(ifs);
-		ifs >> topic;
+		std::getline(ifs, topic);
 		return ifs;
 	}
 };
-Human* HumanAllocate(const std::string& type)
-{
-	if (type.find("Student") != std::string::npos)return new Student("", "", 0, "", "", 0, 0);
-	if (type.find("Teacher") != std::string::npos)return new Teacher("", "", 0, "", 0);
-	if (type.find("Graduate") != std::string::npos)return new Graduate("", "", 0, "", "", 0, 0, "");
-}
 
+Human* HumanFactory(const std::string& type)
+{
+	Human* human = nullptr;
+	if (type.find("Human:") != std::string::npos)return new Human("", "", 0);
+	if (type.find("Student:") != std::string::npos)return new Student("", "", 0, "", "", 0, 0);
+	if (type.find("Teacher:") != std::string::npos)return new Teacher("", "", 0, "", 0);
+	if (type.find("Graduate:") != std::string::npos)return new Graduate("", "", 0, "", "", 0, 0, "");
+	return human;
+}
 void Print(Human* group[], const int n)
 {
 	for (int i = 0; i < n; i++)
 	{
 		//group[i]->print();
-		cout << *group[i] << endl;
-		cout << delimiter;
+		if (group[i])
+		{
+			cout << *group[i] << endl;
+			cout << delimiter;
+		}
 	}
+	cout << "Количество человек в группе: " << n << endl;
 }
 void Clear(Human* group[], const int n)
 {
@@ -349,6 +360,13 @@ void WriteToFile(Human* group[], const int n, const std::string& filename)
 	std::string cmd = "notepad " + filename;
 	system(cmd.c_str());	//Функция system(const char*) выполняет любую доступную команду операционной системы
 }							//Метод c_str() возвращает С-string (NULL Terminated Line), обвернутый в объект класса std::string
+bool NotAppropriateType(const std::string& buffer)
+{
+	return buffer.find("Human") == std::string::npos &&
+		buffer.find("Student") == std::string::npos &&
+		buffer.find("Teacher") == std::string::npos &&
+		buffer.find("Graduate") == std::string::npos;
+}
 Human** Load(const std::string& filename, int& n)
 {
 	Human** group = nullptr;
@@ -361,17 +379,14 @@ Human** Load(const std::string& filename, int& n)
 		{
 			std::string buffer;
 			std::getline(fin, buffer); //читает все до конца строки
-			if (
-				buffer.find("Human") == std::string::npos &&
-				buffer.find("Student") == std::string::npos &&
-				buffer.find("Teacher") == std::string::npos &&
-				buffer.find("Graduate") == std::string::npos 
-				)continue;
+			if (NotAppropriateType(buffer))continue;
 			n++;
 		}
 		cout << "Количество записей в файле " << n << endl;
+
 		//2) Выделяем память для группы:
 		group = new Human * [n] {};
+
 		//3) Возвращаемся в начало файла, для того чтобы прочитать содержимое этого файла
 		cout << "Позиция курсора на чтение: " << fin.tellg() << endl;
 		fin.clear();
@@ -379,12 +394,14 @@ Human** Load(const std::string& filename, int& n)
 		cout << "Позиция курсора на чтение: " << fin.tellg() << endl;
 
 		//4) Читаем файл:
-		std::string type;
 		for (int i = 0; i < n; i++)
 		{
-			std::getline(fin, type, ':');
-			group[i] = HumanAllocate(type);
-			fin >> *group[i];
+			std::string type;
+			fin >> type;
+			if (NotAppropriateType(type))continue;
+			//std::getline(fin, type, ':');
+			group[i] = HumanFactory(type);
+			if (group[i]) fin >> *group[i];
 		}
 		fin.close();
 	}
@@ -435,8 +452,8 @@ void main()
 	cout << delimiter;
 #endif // INHERITANCE_2
 
-	#ifdef SAVE_CHECK
-		uman* group[] =
+#ifdef SAVE_CHECK
+		Human* group[] =
 	{
 		new Student("Pinkman", "Jessie", 20, "Chemistry", "WW_220", 95, 90),
 		new Teacher("White", "Walter", 50, "Chemistry", 25),
@@ -452,7 +469,11 @@ void main()
 
 #endif // SAVE_CHECK
 
+#ifdef LOAD_CHECK
 	int n = 0;
 	Human** group = Load("Group.txt", n);
 	Print(group, n);
+	Clear(group, n);
+#endif // LOAD_CHECK
+
 }
