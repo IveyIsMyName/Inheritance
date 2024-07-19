@@ -256,10 +256,10 @@ public:
 	std::ifstream& read(std::ifstream& ifs)override
 	{
 		Human::read(ifs);
-		char sz_speciality[SPECIALITY_WIDTH + 1]{}; //sz_ - Sting Zero
+		char sz_speciality[SPECIALITY_WIDTH + 1]{}; //sz_ - String Zero
 		ifs.read(sz_speciality, SPECIALITY_WIDTH);
 		for (int i = SPECIALITY_WIDTH - 2; sz_speciality[i] == ' '; i--)sz_speciality[i] = 0;
-		while (sz_speciality[0] == ' ')for (int i = 0; sz_speciality[i]; i++)sz_speciality[i + 1];
+		while (sz_speciality[0] == ' ')for (int i = 0; sz_speciality[i]; i++)sz_speciality[i] = sz_speciality[i + 1];
 		speciality = sz_speciality;
 		ifs >> experience;
 		return ifs;
@@ -323,21 +323,22 @@ public:
 Human* HumanFactory(const std::string& type)
 {
 	Human* human = nullptr;
-	if (type.find("Human:") != std::string::npos)return new Human("", "", 0);
-	if (type.find("Student:") != std::string::npos)return new Student("", "", 0, "", "", 0, 0);
-	if (type.find("Teacher:") != std::string::npos)return new Teacher("", "", 0, "", 0);
-	if (type.find("Graduate:") != std::string::npos)return new Graduate("", "", 0, "", "", 0, 0, "");
+	if (type == "Human:")human = new Human("", "", 0);
+	if (type == "Student:")human = new Student("", "", 0, "", "", 0, 0);
+	if (type == "Teacher:")human = new Teacher("", "", 0, "", 0);
+	if (type == "Graduate:")human = new Graduate("", "", 0, "", "", 0, 0, "");
 	return human;
 }
 void Print(Human* group[], const int n)
 {
+	cout << delimiter << endl;
 	for (int i = 0; i < n; i++)
 	{
 		//group[i]->print();
 		if (group[i])
 		{
 			cout << *group[i] << endl;
-			cout << delimiter;
+			cout << delimiter << endl;
 		}
 	}
 	cout << "Количество человек в группе: " << n << endl;
