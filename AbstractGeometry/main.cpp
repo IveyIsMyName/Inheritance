@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <Windows.h>
 #include <iostream>
 using namespace std;
@@ -60,11 +61,15 @@ namespace Geometry
 		{
 			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 			SetConsoleTextAttribute(hConsole, color);
+			int side = 5;
 			for (int i = 0; i < side; i++)
 			{
-				for (int i = 0; i < side; i++)
+				for (int j = 0; j < side; j++)
 				{
-					cout << "* ";
+					if (i + j >= side - 1)
+						cout << '*';
+					else
+						cout << ' ';
 				}
 				cout << endl;
 			}
@@ -148,6 +153,104 @@ namespace Geometry
 			Shape::info();
 		}
 	};
+	class Circle :public Shape
+	{
+		double radius;
+	public:
+		Circle(double radius, Color color) :Shape(color)
+		{
+			set_radius(radius);
+		}
+		~Circle(){}
+		void set_radius(double radius)
+		{
+			this->radius = radius;
+		}
+		double get_radius()const
+		{
+			return radius;
+		}
+		double get_area()const override
+		{
+			return M_PI * radius * radius;
+		}
+		double get_perimeter()const override
+		{
+			return 2 * M_PI * radius;
+		}
+		void draw()const override
+		{
+			//HWND hwnd = GetConsoleWindow();
+			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
+			HDC hdc = GetDC(hwnd);
+			HPEN hPen = CreatePen(PS_SOLID, 5, color);
+			HBRUSH hBrush = CreateSolidBrush(color);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+			::Ellipse(hdc, 500, 300, 900, 600);
+			DeleteObject(hBrush);
+			DeleteObject(hPen);
+			ReleaseDC(hwnd, hdc);
+		}
+		void info()const override
+		{
+			cout << typeid(*this).name() << endl;
+			cout << "Радиус окружности: " << get_radius() << endl;
+			Shape::info();
+		}
+	};
+
+	class Triangle :public Shape
+	{
+		double side;
+	public:
+		Triangle(double side, Color color) :Shape(color)
+		{
+			set_side(side);
+		}
+		~Triangle(){}
+		void set_side(double side)
+		{
+			this->side = side;
+		}
+		double get_side()const
+		{
+			return side;
+		}
+		double get_area()const override
+		{
+			return side * side * sqrt(3) / 4;
+		}
+		double get_perimeter()const override
+		{
+			return side * 3;
+		}
+		void draw()const override
+		{
+			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
+			HDC hdc = GetDC(hwnd);
+			HPEN hPen = CreatePen(PS_SOLID, 5, color);
+			HBRUSH hBrush = CreateSolidBrush(color);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+			POINT trianglePoints[] =
+			{
+			 { 200, 150 },
+			 { 150, 250 },
+			 { 250, 250 }
+			};
+			::Polygon(hdc, trianglePoints, 3);
+			DeleteObject(hBrush);
+			DeleteObject(hPen);
+			ReleaseDC(hwnd, hdc);
+		}
+		void info()const
+		{
+			cout << typeid(*this).name() << endl;
+			cout << "Длина стороны: " << get_side() << endl;
+			Shape::info();
+		}
+	};
 }
 
 void main()
@@ -155,13 +258,15 @@ void main()
 	setlocale(LC_ALL, "");
 	
 	Geometry::Square square(5, Geometry::Color::CONSOLE_RED);
-	/*cout << "Длина стороны: " << square.get_side() << endl;
-	cout << "Площадь квадрата: " << square.get_area() << endl;
-	cout << "Периметр квадрата: " << square.get_perimeter() << endl;
-	square.draw();*/
 	square.info();
 	
 	Geometry::Rectangle rect(100, 50, Geometry::Color::CONSOLE_BLUE);
 	rect.info();
+
+	Geometry::Circle circle(100, Geometry::Color::CONSOLE_GREEN);
+	circle.info();
+
+	Geometry::Triangle triangle(100, Geometry::Color::CONSOLE_GREEN);
+	triangle.info();
 
 }
