@@ -10,6 +10,7 @@ namespace Geometry
 		//RGB:
 		RED			= 0x000000FF,
 		GREEN		= 0x0000FF00,
+		DARK_GREEN	= 0x0000AA00,
 		BLUE		= 0x00FF0000,
 		YELLOW		= 0x0000FFFF,
 		CONSOLE_RED = 0xCC,  //Старшая "С" - цвет фона, младшая "С" - цвет текста.
@@ -201,7 +202,7 @@ namespace Geometry
 			HDC hdc = GetDC(hwnd);  //Получаем контекст окна консоли
 			//Контекст устройства - это то, на чем мы будем рисовать
 			//3) Теперь нам нужно то, чем мы будем рисовать
-			HPEN hPen = CreatePen(PS_SOLID, 5, color);  //hPen - рисует контур фигуры
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);  //hPen - рисует контур фигуры
 			//PS_SOLID - сплошная лини
 			//5 - толщина линии 5 пикселов
 			HBRUSH hBrush = CreateSolidBrush(color);	//hBrush - рисует заливку фигуры
@@ -267,7 +268,7 @@ namespace Geometry
 			//HWND hwnd = GetConsoleWindow();
 			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
 			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, 5, color);
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
 			HBRUSH hBrush = CreateSolidBrush(color);
 			SelectObject(hdc, hPen);
 			SelectObject(hdc, hBrush);
@@ -316,11 +317,11 @@ namespace Geometry
 		}
 		double get_height()const override
 		{
-			return sqrt(side * side - side / 2 * side / 2);
+			return sqrt(pow(side, 2) - pow(side / 2, 2));
 		}
 		double get_area()const override
 		{
-			return side * side * sqrt(3) / 4;
+			return side * get_height() / 2;
 		}
 		double get_perimeter()const override
 		{
@@ -330,7 +331,7 @@ namespace Geometry
 		{
 			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
 			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, 5, color);
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
 			HBRUSH hBrush = CreateSolidBrush(color);
 			SelectObject(hdc, hPen);
 			SelectObject(hdc, hBrush);
@@ -345,7 +346,7 @@ namespace Geometry
 			DeleteObject(hPen);
 			ReleaseDC(hwnd, hdc);
 		}
-		void info()const
+		void info()const override
 		{
 			cout << typeid(*this).name() << endl;
 			cout << "Длина стороны: " << get_side() << endl;
@@ -370,6 +371,7 @@ namespace Geometry
 		void set_side(double side)
 		{
 			this->side = filter_size(side);
+			if (this->side <= base / 2)this->side = base * 3 / 5;
 		}
 		double get_base()const
 		{
@@ -395,7 +397,7 @@ namespace Geometry
 		{
 			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
 			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, 5, color);
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
 			HBRUSH hBrush = CreateSolidBrush(color);
 			SelectObject(hdc, hPen);
 			SelectObject(hdc, hBrush);
@@ -415,8 +417,8 @@ namespace Geometry
 		void info()const override
 		{
 			cout << typeid(*this).name() << endl;
-			cout << "Основание треугольника: " << base << endl;
-			cout << "Сторона треугольника: " << side << endl;
+			cout << "Основание треугольника: " << get_base() << endl;
+			cout << "Сторона треугольника: " << get_side() << endl;
 			cout << "Высота треугольника: " << get_height() << endl;
 			Triangle::info();
 		}
@@ -468,7 +470,7 @@ namespace Geometry
 		{
 			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
 			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, 5, color);
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
 			HBRUSH hBrush = CreateSolidBrush(color);
 			SelectObject(hdc, hPen);
 			SelectObject(hdc, hBrush);
@@ -485,7 +487,7 @@ namespace Geometry
 			DeleteObject(hPen);
 			ReleaseDC(hwnd, hdc);
 		}
-		void info()const
+		void info()const override
 		{
 			cout << typeid(*this).name() << endl;
 			cout << "Сторона 1:	 " << side1 << endl;
@@ -512,12 +514,11 @@ void main()
 	Geometry::EquilateralTriangle eq_triangle(100, 400, 500, 5, Geometry::Color::RED);
 	eq_triangle.info();
 
-	Geometry::IsoscelesTriangle is_triangle(100, 75, 900, 200, 5, Geometry::Color::GREEN);
+	Geometry::IsoscelesTriangle is_triangle(200, 10, 900, 200, 5, Geometry::Color::DARK_GREEN);
 	is_triangle.info();
 	
 	Geometry::RightTriangle r_triangle(150, 80, 900, 100, 5, Geometry::Color::BLUE);
 	r_triangle.info();
 
 	cout << "Количество фигур: " << r_triangle.get_count() << endl;
-
 }
