@@ -27,6 +27,10 @@ namespace Geometry
 		unsigned int start_y;
 		unsigned int line_width;
 		Color color;
+		HDC hdc;
+		HPEN hPen;
+		HBRUSH hBrush;
+
 		static const int MIN_START_X = 100;
 		static const int MIN_START_Y = 50;
 		static const int MAX_START_X = 1000;
@@ -41,16 +45,30 @@ namespace Geometry
 		virtual double get_perimeter()const = 0;
 		virtual void draw()const = 0;
 
+		void hdc_init()
+		{
+			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
+			hdc = GetDC(hwnd);
+			hPen = CreatePen(PS_SOLID, line_width, color);
+			hBrush = CreateSolidBrush(color);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+		}
 		Shape(SHAPE_TAKE_PARAMETERS) :color(color)
 		{
 			set_start_x(start_x);
 			set_start_y(start_y);
 			set_line_width(line_width);
+			hdc_init();
 			count++;
 		}
+		
 		virtual ~Shape()
 		{
 			count--;
+			if (hPen) DeleteObject(hPen);
+			if (hBrush) DeleteObject(hBrush);
+			if (hdc) ReleaseDC(FindWindow(NULL, L"Inheritance - Microsoft Visual Studio"), hdc);
 		}
 		int get_count()const
 		{
@@ -68,6 +86,7 @@ namespace Geometry
 		{
 			return line_width;
 		}
+	
 		void set_start_x(unsigned int start_x)
 		{
 			if (start_x < MIN_START_X)start_x = MIN_START_X;
@@ -82,7 +101,6 @@ namespace Geometry
 		}
 		void set_line_width(unsigned int line_width)
 		{
-			//if (line_width > 30)line_width = 30;
 			this->line_width =
 				line_width < MIN_LINE_WIDTH ? MIN_LINE_WIDTH : 
 				line_width > MAX_LINE_WIDTH? MAX_LINE_WIDTH : 
@@ -191,32 +209,9 @@ namespace Geometry
 		{
 			return (width + height) * 2;
 		}
-		void draw()const override
+		void draw()const override 
 		{
-			//WinGDI - Windows Graphics Device Interface
-			//1) Получаем окно консоли
-			//HWND hwnd = GetConsoleWindow(); //Функция получает окно консоли
-			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
-			//2) Для того чтобы рисовать, нужен контекст устройства (Device Context), который есть у каждого окна
-			//контекст устройства можно получить при помощи функции GetDC();
-			HDC hdc = GetDC(hwnd);  //Получаем контекст окна консоли
-			//Контекст устройства - это то, на чем мы будем рисовать
-			//3) Теперь нам нужно то, чем мы будем рисовать
-			HPEN hPen = CreatePen(PS_SOLID, line_width, color);  //hPen - рисует контур фигуры
-			//PS_SOLID - сплошная лини
-			//5 - толщина линии 5 пикселов
-			HBRUSH hBrush = CreateSolidBrush(color);	//hBrush - рисует заливку фигуры
-			//SolidBrush - сплошной цвет
-			//4) Выбираем чем, и на чем мы будем рисовать
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
-			//5) Рисуем фигуру
-			::Rectangle(hdc, start_x, start_y, start_x + width, start_y + height); //:: - Global Scope
-			//6) hdc, hPen и hBrush занимают ресурсы и после того, как мы ими воспользовалисись, ресурсы нужно освободить
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-
-			ReleaseDC(hwnd, hdc);
+			::Rectangle(hdc, start_x, start_y, start_x + width, start_y + height);
 		}
 		void info()const override
 		{
@@ -243,8 +238,6 @@ namespace Geometry
 		~Circle(){}
 		void set_radius(double radius)
 		{
-			//if (radius < 20)radius = 20;
-			//if (radius > 200)radius = 200;
 			this->radius = filter_size(radius);
 		}
 		double get_radius()const
@@ -265,17 +258,7 @@ namespace Geometry
 		}
 		void draw()const override
 		{
-			//HWND hwnd = GetConsoleWindow();
-			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
-			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
-			HBRUSH hBrush = CreateSolidBrush(color);
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
 			::Ellipse(hdc, start_x, start_y, start_x + get_diameter(), start_y + get_diameter());
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-			ReleaseDC(hwnd, hdc);
 		}
 		void info()const override
 		{
@@ -329,12 +312,6 @@ namespace Geometry
 		}
 		void draw()const override
 		{
-			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
-			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
-			HBRUSH hBrush = CreateSolidBrush(color);
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
 			POINT vertex[] =
 			{
 				{start_x, start_y + side},
@@ -342,9 +319,6 @@ namespace Geometry
 				{start_x + side / 2, start_y + side - get_height()}
 			};
 			::Polygon(hdc, vertex, 3);
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-			ReleaseDC(hwnd, hdc);
 		}
 		void info()const override
 		{
@@ -395,12 +369,6 @@ namespace Geometry
 		}
 		void draw()const override
 		{
-			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
-			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
-			HBRUSH hBrush = CreateSolidBrush(color);
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
 			POINT vertex[] =
 			{
 				{start_x, start_y + side},
@@ -409,10 +377,6 @@ namespace Geometry
 			};
 
 			::Polygon(hdc, vertex, 3);
-
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-			ReleaseDC(hwnd, hdc);
 		}
 		void info()const override
 		{
@@ -468,12 +432,6 @@ namespace Geometry
 		}
 		void draw()const override
 		{
-			HWND hwnd = FindWindow(NULL, L"Inheritance - Microsoft Visual Studio");
-			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
-			HBRUSH hBrush = CreateSolidBrush(color);
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
 			POINT vertex[] =
 			{
 				{start_x, start_y},
@@ -482,10 +440,6 @@ namespace Geometry
 			};
 
 			::Polygon(hdc, vertex, 3);
-
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-			ReleaseDC(hwnd, hdc);
 		}
 		void info()const override
 		{
